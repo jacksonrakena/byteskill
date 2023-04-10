@@ -1,5 +1,7 @@
+use std::time::SystemTime;
 use axum::http::StatusCode;
 use axum::response::Html;
+use log::info;
 use tera::Context;
 use crate::evaluation::{Evaluator};
 use crate::evaluation::RunFailure::{CompilationError, Internal, RuntimeError};
@@ -12,11 +14,13 @@ pub struct MarkQuestionFormBody{
     answer: String
 }
 
-pub async fn mark_question(axum::extract::Path(_): axum::extract::Path<String>,
+pub async fn mark_question(axum::extract::Path(id): axum::extract::Path<String>,
                        axum::extract::Form(answer): axum::extract::Form<MarkQuestionFormBody>) -> Result<Html<String>, StatusCode> {
     let mut evaluator = Evaluator{};
     let mut ctx = Context::new();
+    let mark_start = SystemTime::now();
     let result = evaluator.evaluate_code(answer.answer).await;
+    info!("Marked {} in {}ms", id, SystemTime::now().duration_since(mark_start).unwrap().as_millis());
 
     match result {
         Ok(_) => {

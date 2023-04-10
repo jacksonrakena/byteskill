@@ -1,6 +1,8 @@
 use axum::Router;
 use axum::routing::{get,post};
 use lazy_static::lazy_static;
+use log::{info, LevelFilter};
+use pretty_env_logger::env_logger::{Builder, Target};
 use tera::{Tera};
 use crate::evaluation::Evaluator;
 use crate::routes::get_question::get_question;
@@ -13,6 +15,10 @@ pub mod routes;
 
 #[tokio::main]
 async fn main() {
+    Builder::new().filter_module(stringify!(byteskill), LevelFilter::Info).target(Target::Stdout).init();
+
+    info!("Byteskill server starting");
+
     Evaluator::global_init_evaluator().await;
     let app = Router::new()
         .route("/question/:id", get(get_question))

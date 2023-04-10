@@ -9,6 +9,7 @@ use futures_util::stream::StreamExt;
 use futures_util::TryStreamExt;
 use tempfile::{tempdir};
 use std::io::{Write};
+use log::info;
 
 use crate::evaluation::InternalError::{ContainerCreationFailure, ContainerStartFailure, EngineUnavailable};
 use crate::evaluation::RunFailure::{CompilationError, Internal, RuntimeError};
@@ -50,7 +51,7 @@ impl Evaluator {
             ..Default::default()
         }), None, None).try_collect::<Vec<_>>().await.unwrap();
 
-        println!("created Docker image {}", DOCKER_IMAGE);
+        info!("Created Docker image {}", DOCKER_IMAGE);
     }
 
     pub async fn evaluate_code(&mut self, code: String) -> EvaluationResult {
