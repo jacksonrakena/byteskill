@@ -1,16 +1,8 @@
-use std::collections::HashMap;
-use std::{fs};
-use std::io::{self, Write};
-use axum::response::Html;
 use axum::Router;
-use axum::http::StatusCode;
 use axum::routing::{get,post};
 use lazy_static::lazy_static;
-use tera::{Context, Tera};
-use crate::evaluation::RunFailure::{CompilationError, Internal, RuntimeError};
-use serde::Deserialize;
+use tera::{Tera};
 use crate::evaluation::Evaluator;
-use crate::question_bank::{Question};
 use crate::routes::get_question::get_question;
 use crate::routes::mark_question::mark_question;
 

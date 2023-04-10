@@ -1,28 +1,16 @@
-use std::collections::HashMap;
-use std::{env, fs};
-use std::any::Any;
-use std::error::Error;
 use std::fs::File;
-use std::path::Path;
-use bollard::container::{AttachContainerOptions, Config, CreateContainerOptions, LogOutput, RemoveContainerOptions, StartContainerOptions};
+use bollard::container::{Config, RemoveContainerOptions, StartContainerOptions};
 use bollard::Docker;
-use bollard::exec::{CreateExecOptions, StartExecResults};
+use bollard::exec::{CreateExecOptions};
 use bollard::exec::StartExecResults::Attached;
 use bollard::image::CreateImageOptions;
 use bollard::models::{ExecInspectResponse, HostConfig};
 use futures_util::stream::StreamExt;
 use futures_util::TryStreamExt;
-use tempfile::{tempdir, tempfile};
-use tokio::io::AsyncWriteExt;
-use std::io::{self, Write};
-use axum::response::Html;
-use axum::{Router, ServiceExt};
-use axum::routing::get;
-use handlebars::Handlebars;
-use lazy_static::lazy_static;
-use serde_json::json;
-use tera::Tera;
-use crate::evaluation::InternalError::{ContainerCreationFailure, ContainerStartFailure, EngineUnavailable, ImageUnavailable};
+use tempfile::{tempdir};
+use std::io::{Write};
+
+use crate::evaluation::InternalError::{ContainerCreationFailure, ContainerStartFailure, EngineUnavailable};
 use crate::evaluation::RunFailure::{CompilationError, Internal, RuntimeError};
 
 pub const DOCKER_IMAGE: &str = "eclipse-temurin:17-jdk-alpine";
@@ -57,7 +45,7 @@ impl Evaluator {
     /// is ready for use.
     pub async fn global_init_evaluator() {
         let docker = Docker::connect_with_socket_defaults().unwrap();
-        let image = docker.create_image(Some(CreateImageOptions {
+        docker.create_image(Some(CreateImageOptions {
             from_image: DOCKER_IMAGE,
             ..Default::default()
         }), None, None).try_collect::<Vec<_>>().await.unwrap();

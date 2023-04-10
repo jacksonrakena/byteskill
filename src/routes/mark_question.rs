@@ -1,7 +1,7 @@
 use axum::http::StatusCode;
 use axum::response::Html;
 use tera::Context;
-use crate::evaluation::Evaluator;
+use crate::evaluation::{Evaluator};
 use crate::evaluation::RunFailure::{CompilationError, Internal, RuntimeError};
 use crate::TEMPLATES;
 
@@ -12,9 +12,9 @@ pub struct MarkQuestionFormBody{
     answer: String
 }
 
-pub async fn mark_question(axum::extract::Path(id): axum::extract::Path<String>,
+pub async fn mark_question(axum::extract::Path(_): axum::extract::Path<String>,
                        axum::extract::Form(answer): axum::extract::Form<MarkQuestionFormBody>) -> Result<Html<String>, StatusCode> {
-    let evaluator = Evaluator{};
+    let mut evaluator = Evaluator{};
     let mut ctx = Context::new();
     let result = evaluator.evaluate_code(answer.answer).await;
 
@@ -22,9 +22,9 @@ pub async fn mark_question(axum::extract::Path(id): axum::extract::Path<String>,
         Ok(_) => {
             ctx.insert("result", "success");
         },
-        Err(Internal(internal)) => {
+        Err(Internal(_)) => {
             ctx.insert("result", "internal_error");
-            ctx.insert("error", &format!("{:#?}",internal));
+            ctx.insert("error", "The marking service is currently unavailable.");
         },
         Err(CompilationError { output, .. }) => {
             ctx.insert("result", "compile_failure");

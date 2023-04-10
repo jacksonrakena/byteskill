@@ -22,6 +22,7 @@ lazy_static! {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 pub struct Question {
     pub(crate) name: String,
     pub(crate) author: String,
