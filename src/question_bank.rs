@@ -1,42 +1,38 @@
 use std::collections::HashMap;
+use std::fs;
+use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 
+pub struct QuestionBank {
+    pub questions: HashMap<String, Question>
+}
+
+impl Default for QuestionBank {
+    fn default() -> Self {
+        QuestionBank {
+            questions: serde_json::from_str::<HashMap<String, Question>>(
+                fs::read_to_string("questions.json").unwrap().as_str()
+            ).unwrap()
+        }
+    }
+}
+
+lazy_static! {
+    pub static ref QUESTION_BANK: QuestionBank = QuestionBank::default();
+}
+
+#[derive(Deserialize)]
 pub struct Question {
     pub(crate) name: String,
+    pub(crate) author: String,
     pub(crate) description: Option<String>,
     pub(crate) text: String,
     pub(crate) help: Option<String>,
-    pub(crate) hints: Vec<Hint>
+    pub(crate) hints: Vec<Hint>,
 }
 
+#[derive(Deserialize, Serialize)]
 pub struct Hint {
-    pub(crate) hint_title: String,
-    pub(crate) hint_description: String
-}
-
-pub fn get_questions() -> HashMap<i64, Question> {
-    return HashMap::from([
-        (1, Question {
-            name: "Dodo the Eagle [Medium]".to_string(),
-            description: None,
-            text: "//7 there is record implementing interface, add interface,
-//methods is satisfied by field
-
-[???]
-record Eagle(double speed) implements Bird{}
-public class Exercise{
-  public static void main(String[] arg){
-    Eagle dodo = new Eagle(3);
-    Bird a1 = dodo;
-    Bird a2 = new Eagle(6);
-    assert a1.speed()==3;
-    assert a1.flyingSpeed()==30;
-    assert a2.speed()==6;
-    assert a2.flyingSpeed()==60;
-  }
-}
-        ".to_string(),
-            hints: vec![],
-            help: None
-        })
-    ]);
+    pub(crate) title: String,
+    pub(crate) description: String,
 }

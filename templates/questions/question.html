@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Index{% endblock title %}
+{% block title %}{{ question_name }}{% endblock title %}
 {% block head %}
 {{ super() }}
 <style type="text/css">
@@ -41,18 +41,18 @@
     });
 </script>
 <div class="container">
-    <h1>Question</h1>
     <div>
-        <b>Question:</b> {{ question_name }} (#{{question_id}})
+        <h3>{{ question_name }}</h3>
+        <div> {{ question_description }}</div>
     </div>
-    <div>
+    <div class="mt-4">
         Enter your code in the right-side editor pane. The left-side editor will automatically update to reflect your changes.
     </div>
     <div class="container-fluid mt-2">
         <form method="post">
             <div class="row">
                 <div class="col-sm">
-                    <h4>Question</h4>
+                    <h4>Context</h4>
                     <div id="question-container" style="height:400px;">
 
                     </div>
@@ -69,6 +69,29 @@
                 <input type="submit" class="btn btn-primary" />
             </div>
         </form>
+        <div class="mt-4 mb-6">
+            <h4>Hints</h4>
+            {% if hints_length == 0 %}
+                No hints are available for this question.
+            {% else %}
+            <div class="accordion" id="hints-accordion">
+                {% for hint in hints %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                            {{ hint.title }}
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordion">
+                        <div class="accordion-body">
+                            {{ hint.description | safe }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock content %}

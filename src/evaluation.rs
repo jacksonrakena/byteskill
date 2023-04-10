@@ -25,6 +25,8 @@ use tera::Tera;
 use crate::evaluation::InternalError::{ContainerCreationFailure, ContainerStartFailure, EngineUnavailable, ImageUnavailable};
 use crate::evaluation::RunFailure::{CompilationError, Internal, RuntimeError};
 
+pub const DOCKER_IMAGE: &str = "eclipse-temurin:17-jdk-alpine";
+
 #[derive(Debug)]
 pub enum InternalError {
     EngineUnavailable,
@@ -49,26 +51,30 @@ pub struct Evaluator {
 }
 
 impl Evaluator {
-    pub async fn evaluate_code(&self, code: String) -> EvaluationResult {
-        let Ok(docker) = Docker::connect_with_socket_defaults() else { return Err(Internal(EngineUnavailable)) };
-        println!("Initialised Docker");
-
-        // Start image
-        let Ok(img) = docker.create_image(Some(CreateImageOptions {
-            from_image: "eclipse-temurin:17.0.3_7-jdk-jammy",
+    /// Initialises the global state for all evaluators.
+    ///
+    /// This should be called at startup to ensure that the Docker base image
+    /// is ready for use.
+    pub async fn global_init_evaluator() {
+        let docker = Docker::connect_with_socket_defaults().unwrap();
+        let image = docker.create_image(Some(CreateImageOptions {
+            from_image: DOCKER_IMAGE,
             ..Default::default()
-        }), None, None).try_collect::<Vec<_>>().await else { return Err(Internal(ImageUnavailable)) };
-        println!("Initialised image");
+        }), None, None).try_collect::<Vec<_>>().await.unwrap();
+
+        println!("created Docker image {}", DOCKER_IMAGE);
+    }
+
+    pub async fn evaluate_code(&mut self, code: String) -> EvaluationResult {
+        let Ok(docker) = Docker::connect_with_socket_defaults() else { return Err(Internal(EngineUnavailable)) };
 
         let Ok(tempfolder) = tempdir() else { return Err(Internal(ContainerCreationFailure)) };
-        println!("temporary folder {}", tempfolder.path().display());
 
         let Ok(mut file) = File::create(tempfolder.path().join("Exercise.java")) else { return Err(Internal(ContainerCreationFailure)) };
         let Ok(()) = writeln!(file, "{}", code) else { return Err(Internal(ContainerCreationFailure)) };
-        println!("Wrote data to {}", tempfolder.path().join("Exercise.java").display());
 
         let Ok(container) = docker.create_container::<&str, &str>(None, Config {
-            image: Some("eclipse-temurin:17.0.3_7-jdk-jammy"),
+            image: Some(DOCKER_IMAGE),
             entrypoint: Some(vec!["tail", "-F", "/dev/null"]),
             host_config: Some(HostConfig {
                 binds: Some(vec![format!("{}:/workspace", tempfolder.path().to_string_lossy())]),
@@ -77,10 +83,7 @@ impl Evaluator {
             ..Default::default()
         }).await else { return Err(Internal(ContainerCreationFailure)) };
 
-        println!("Created container {}", container.id);
         docker.start_container(&container.id, None::<StartContainerOptions<String>>).await.unwrap();
-        println!("Started container {}", container.id);
-
 
         let Ok(compilation_exec) = docker.create_exec(&container.id, CreateExecOptions {
             attach_stderr: Some(true),
@@ -115,8 +118,6 @@ impl Evaluator {
             docker.remove_container(&container.id, Some(RemoveContainerOptions { force: true, ..Default::default() })).await.unwrap();
             return Err(Internal(ContainerStartFailure))
         };
-
-        println!("Finished compilation with code {}.", code);
 
         if code != 0 {
             docker.remove_container(&container.id, Some(RemoveContainerOptions { force: true, ..Default::default() })).await.unwrap();
@@ -162,7 +163,6 @@ impl Evaluator {
         }
 
         docker.remove_container(&container.id, Some(RemoveContainerOptions { force: true, ..Default::default() })).await.unwrap();
-        println!("Removed container.");
 
         Ok(o)
     }

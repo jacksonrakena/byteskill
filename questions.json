@@ -1,0 +1,21 @@
+{
+  "lambda_identification_1": {
+    "name": "Lambda Identification #1",
+    "author": "Jackson Rakena",
+    "description": "For this question, you need to identify the lambda type being used by this function.",
+    "text": "import java.util.function.*;\n\nrecord Person(String name, int age) {\n}\n\nclass Exercise {\n  public static void main(String[] args) {\n    Consumer<Person> print = (Person p) -> {\n      System.out.println(p.name() + \", aged \" + p.age());\n    };\n    print.accept(new Person(\"Jackson\", 19));\n  }\n}",
+    "hints": []
+  },
+  "lambda_identification_2": {
+    "name": "Lambda Identification #2",
+    "author": "Jackson Rakena",
+    "description": "For this question, you have to provide an appropriate lambda.",
+    "text": "import java.util.function.*;\n\nrecord Person(String name, int age) {\n}\n\nclass Exercise {\n  public static void main(String[] args) {\n    check([???]);\n  }\n\n  public static void check(Function<Person, Integer> modifier) {\n    var person = new Person(\"Jackson\", 19);\n    var result = modifier.apply(person);\n\n    assert result == 19;\n  }\n}",
+    "hints": [
+      {
+        "title": "Function<T, R>",
+        "description": "Take a look at the <code>Function&lt;Person,Integer&gt; modifier</code> parameter on Line 11. Recall that in a lambda function <code>Function&lt;T,R&gt;</code>, <code>T</code> is the input parameter, and <code>R</code> is the return type."
+      }
+    ]
+  }
+}
