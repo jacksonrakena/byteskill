@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Index{% endblock title %}
+{% block head %}
+{{ super() }}
+<style type="text/css">
+    .important { color: #336699; }
+</style>
+<link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.20.0/min/vs/editor/editor.main.min.css" />
+{% endblock head %}
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
+<script>
+    var text_question = `{{ question_text | safe }}`;
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs' }});
+    require(["vs/editor/editor.main"], () => {
+        var question = monaco.editor.create(document.getElementById('question-container'), {
+            value: text_question,
+            language: 'java',
+            theme: 'vs-light',
+            readOnly: true,
+            tabSize: 2,
+            minimap: {
+                enabled: false
+            }
+        });
+
+        var answer = monaco.editor.create(document.getElementById('answer-container'), {
+            value: ``,
+            tabSize: 2,
+            language: 'java',
+            theme: 'vs-light',
+            minimap: {
+                enabled: false
+            }
+        })
+        answer.getModel().onDidChangeContent(content => {
+            var user_computed_answer = text_question.replace("[???]", answer.getModel().getValue());
+            question.getModel().setValue(user_computed_answer);
+            document.getElementById("input-answer").value = user_computed_answer;
+        })
+    });
+</script>
+<div class="container">
+    <h1>Question</h1>
+    <div>
+        <b>Question:</b> {{ question_name }} (#{{question_id}})
+    </div>
+    <div>
+        Enter your code in the right-side editor pane. The left-side editor will automatically update to reflect your changes.
+    </div>
+    <div class="container-fluid mt-2">
+        <form method="post">
+            <div class="row">
+                <div class="col-sm">
+                    <h4>Question</h4>
+                    <div id="question-container" style="height:400px;">
+
+                    </div>
+                </div>
+                <div class="col-sm">
+                    <h4>Enter your code here:</h4>
+                    <div id="answer-container" style="height:400px;">
+
+                    </div>
+                </div>
+            </div>
+            <div class="mt-2">
+                <input id="input-answer" type="hidden" name="answer" value="test" />
+                <input type="submit" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
