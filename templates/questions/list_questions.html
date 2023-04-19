@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Index{% endblock title %}
+{% block head %}
+{{ super() }}
+
+{% endblock head %}
+{% block content %}
+<div class="container">
+    <div class="container-fluid mt-2">
+        {% if result == "success" %}
+        Success.
+        {% elif result == "internal_error" %}
+        We're very sorry, but there was a server error marking your submission.
+        Please try again later.
+        {% elif result == "compile_failure" %}
+        Compiler error.
+        <div>
+                <pre>
+                    {% for error in compilation %}
+                    {{ error | safe }}
+                    {% endfor %}
+                </pre>
+        </div>
+        {% elif result == "runtime_failure" %}
+        Runtime error.
+        <div>
+                <pre>
+                    {% for error in runtime %}
+                        {{ error | safe }}
+                    {% endfor %}
+                </pre>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
